@@ -88,24 +88,26 @@ jobs:
 
  # Add new files in folder, commit along with other modified files, push
 
-      - name: Commit files
-        run:
-          git config --local user.name actions-user
-          git config --local user.email "actions@github.com"
+      # - name: Commit files
+      #   run:
+      #     git config --local user.name actions-user
+      #     git config --local user.email "actions@github.com"
 
-          git checkout dev
-          git add -A
-          git commit -am "GH ACTION Headlines $(date)"
-          git push dev
-        env:
-          REPO_KEY: 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
-          username: github-actions
+      #     git checkout dev
+      #     git add -A
+      #     git commit -am "GH ACTION Headlines $(date)"
+      #     git push dev
+      #   env:
+      #     REPO_KEY: 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
+      #     username: github-actions
 
       - name: Commit files
         run: |
           git config --global user.name 'Foodshare-club'
           git config --global user.email 'tamerlanium@gmail.com'
           git remote set-url origin https://x-access-token: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@github.com/Foodshare-club/Supa-Migrate
+          git remote set-url dec https://x-access-token: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@github.com/Foodshare-club/Supa-Migrate
+          git checkout dev
           git commit -am "Added changes"
-          git push
+          git push dev
           
