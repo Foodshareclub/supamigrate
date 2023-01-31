@@ -43,6 +43,7 @@ jobs:
           python3 -m pip install --upgrade pip setuptools wheel
           python3 -m pip install --upgrade coverage[toml] tox tox-gh-actions
           python3 -m pip install --upgrade jupyter
+          python3 -m pip install --upgrade pytz
           python3 -m pip install --upgrade supabase
           python3 -m pip install --upgrade google-colab
           python3 -m pip install --upgrade os-sys
