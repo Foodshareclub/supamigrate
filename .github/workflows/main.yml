@@ -1,6 +1,8 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Jupyter
+# name: Jupyter
+name: DB backup
+
 
 # Controls when the workflow will run
 on:
@@ -16,46 +18,57 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
-    name: tox on ${{ matrix.python-version }}
-    # The type of runner that the job will run on
+#   build:
+#     name: tox on ${{ matrix.python-version }}
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
+#     env:
+#       USING_COVERAGE: '3.7'
+   
+   run_tests:
     runs-on: ubuntu-latest
-    env:
-      USING_COVERAGE: '3.7'
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run script file
+      run: |
+         chmod +x ./backup_database.sh
+         ./backup_database.sh
+      shell: bash   
+      
 
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - "3.7"
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         python-version:
+#           - "3.7"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python3 -VV
-          python3 -m site
-          python3 -m pip install --upgrade pip setuptools wheel pytz
-          python3 -m pip install --upgrade install pandas
-          python3 -m pip install --upgrade coverage[toml] tox tox-gh-actions
-          python3 -m pip install --upgrade jupyter
-          python3 -m pip install --upgrade pytz
-          python3 -m pip install --pre pytz
-          python3 -m pip install --upgrade supabase
-          python3 -m pip install --upgrade nteract-scrapbook
-          python3 -m pip install --upgrade google-api-python-client
-          python3 -m pip install --upgrade google-colab
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: actions/setup-python@v4
+#         with:
+#           python-version: ${{ matrix.python-version }}
+#       - name: Install dependencies
+#         run: |
+#           python3 -VV
+#           python3 -m site
+#           python3 -m pip install --upgrade pip setuptools wheel pytz
+#           python3 -m pip install --upgrade install pandas
+#           python3 -m pip install --upgrade coverage[toml] tox tox-gh-actions
+#           python3 -m pip install --upgrade jupyter
+#           python3 -m pip install --upgrade pytz
+#           python3 -m pip install --pre pytz
+#           python3 -m pip install --upgrade supabase
+#           python3 -m pip install --upgrade nteract-scrapbook
+#           python3 -m pip install --upgrade google-api-python-client
+#           python3 -m pip install --upgrade google-colab
 
-      - id: python
-        name: Python Setup & Packages Installation
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-          cache: 'pip'
+#       - id: python
+#         name: Python Setup & Packages Installation
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.7'
+#           cache: 'pip'
 #         cache-dependency-path: "${{ github.action_path }}/requirements.txt" 
 #     - run: pip install -r requirements.txt
 
@@ -64,13 +77,13 @@ jobs:
 #         run: jupyter execute Backup_Project_&_Storage.ipynb
 #         shell: bash 
 
-      - uses: yaananth/run-notebook@v2
-        env:
-          RUNNER: ${{ toJson(runner) }}
-          SECRETS: ${{ toJson(secrets) }}
-          GITHUB: ${{ toJson(github) }}
-        with:
-          notebook: "Backup_Project_&_Storage.ipynb"
+#       - uses: yaananth/run-notebook@v2
+#         env:
+#           RUNNER: ${{ toJson(runner) }}
+#           SECRETS: ${{ toJson(secrets) }}
+#           GITHUB: ${{ toJson(github) }}
+#         with:
+#           notebook: "Backup_Project_&_Storage.ipynb"
 
 
  # Add new files in folder, commit along with other modified files, push
