@@ -40,7 +40,7 @@ jobs:
         run: |
           python3 -VV
           python3 -m site
-          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel pytz
           python3 -m pip install --upgrade coverage[toml] tox tox-gh-actions
           python3 -m pip install --upgrade jupyter
           python3 -m pip install --upgrade pytz
