@@ -100,5 +100,12 @@ jobs:
         env:
           REPO_KEY: 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
           username: github-actions
-          
+
+      - name: Commit files
+        run: |
+          git config --global user.name 'Foodshare-club'
+          git config --global user.email 'tamerlanium@gmail.com'
+          git remote set-url origin https://x-access-token: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@github.com/Foodshare-club/Supa-Migrate
+          git commit -am "Added changes"
+          git push
           
