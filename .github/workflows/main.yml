@@ -47,6 +47,7 @@ jobs:
           python3 -m pip install --pre pytz
           python3 -m pip install --upgrade supabase
           python3 -m pip install --upgrade nteract-scrapbook
+          python3 -m pip install --upgrade google-api-python-client
 
       - id: python
         name: Python Setup & Packages Installation
