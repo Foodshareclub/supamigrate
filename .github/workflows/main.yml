@@ -25,15 +25,15 @@ jobs:
 #     env:
 #       USING_COVERAGE: '3.7'
    
-   run_tests:
+   run_db_backup:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Run script file
-      run: |
-         chmod +x ./backup_database.sh
-         ./backup_database.sh
-      shell: bash   
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+           chmod +x ./backup_database.sh
+           ./backup_database.sh
+        shell: bash   
       
 
 #     strategy:
@@ -87,20 +87,22 @@ jobs:
 
 
  # Add new files in folder, commit along with other modified files, push
-#       - id: commit
-#         name: Commit files
-#         run:
-#           git config --local user.name actions-user
 
-#           git config --local user.email "actions@github.com"
+      - name: Commit files
+        run:
+          git config --local user.name actions-user
 
-#           git add *
+          git config --local user.email "actions@github.com"
 
-#           git commit -am "GH ACTION Headlines $(date)"
+          git add *
 
-#           git push origin main
+          git commit -am "GH ACTION Headlines $(date)"
 
-#         env:
-#           REPO_KEY: ${{secrets.GITHUB_TOKEN}}
+          git push origin main
 
-#           username: github-actions
+        env:
+          REPO_KEY: ${{secrets.GITHUB_TOKEN}}
+
+          username: github-actions
+          
+          
