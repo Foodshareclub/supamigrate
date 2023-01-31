@@ -98,8 +98,7 @@ jobs:
           git commit -am "GH ACTION Headlines $(date)"
           git push dev
         env:
-          REPO_KEY: ${{secrets.GITHUB_TOKEN}}
-
+          REPO_KEY: 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
           username: github-actions
           
           
