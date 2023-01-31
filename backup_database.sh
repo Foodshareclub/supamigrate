@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 #Edit here:
-OLD_DB_URL=db.old_project_ref.supabase.co
-OLD_DB_PASS=secret_password_here
+OLD_DB_URL=db.iazmjdjwnkilycbjwpzp.supabase.co
+OLD_DB_PASS=SnzHUJMOUQAJDciw
 
 #Script:
 # Default case for Linux sed, just use "-i"
