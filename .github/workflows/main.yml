@@ -37,7 +37,7 @@ jobs:
           sed -i -e 's/^ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin"/-- ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin"/' /tmp/supabase_backup/dump.sql
         env:
           PROD_DB_URL: 'db.iazmjdjwnkilycbjwpzp.supabase.co'
-          SUPABASE_PASSWORD: '${{ secrets.DB_PASSWORD }}'
+          SUPABASE_PASSWORD: 'SnzHUJMOUQAJDciw'
       - uses: actions/upload-artifact@v2
         name: Save backup as artifact
         with:
