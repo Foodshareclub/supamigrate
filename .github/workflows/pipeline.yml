@@ -287,11 +287,10 @@ jobs:
           retention-days: 90
 
   # ---------------------------------------------------------------------------
-  # Fuzzing (optional, runs on schedule)
+  # Fuzzing
   # ---------------------------------------------------------------------------
   fuzz:
     name: Fuzz
-    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -662,11 +661,10 @@ jobs:
         continue-on-error: true
 
   # ---------------------------------------------------------------------------
-  # Compliance Report (weekly)
+  # Compliance Report
   # ---------------------------------------------------------------------------
   compliance:
     name: Compliance
-    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
