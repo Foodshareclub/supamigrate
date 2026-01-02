@@ -166,7 +166,9 @@ impl FunctionsClient {
             let body: EdgeFunctionBody = response.json().await?;
             if let Some(source) = body.body {
                 return Ok(vec![FunctionFile {
-                    name: body.entrypoint_path.unwrap_or_else(|| "index.ts".to_string()),
+                    name: body
+                        .entrypoint_path
+                        .unwrap_or_else(|| "index.ts".to_string()),
                     content: source,
                 }]);
             }
@@ -182,7 +184,11 @@ impl FunctionsClient {
     /// Create or update an edge function
     pub async fn deploy_function(&self, backup: &FunctionBackup) -> Result<()> {
         // First check if function exists
-        let exists = self.list_functions().await?.iter().any(|f| f.slug == backup.slug);
+        let exists = self
+            .list_functions()
+            .await?
+            .iter()
+            .any(|f| f.slug == backup.slug);
 
         let url = if exists {
             format!(
@@ -200,7 +206,7 @@ impl FunctionsClient {
 
         // Build multipart form with files
         let mut form = reqwest::multipart::Form::new();
-        
+
         // Add metadata
         let metadata = serde_json::json!({
             "name": backup.name,
@@ -248,7 +254,7 @@ impl FunctionsClient {
         for func in functions {
             debug!("Backing up function: {}", func.slug);
             let files = self.download_function_source(&func.slug).await?;
-            
+
             backups.push(FunctionBackup {
                 slug: func.slug,
                 name: func.name,
@@ -269,7 +275,7 @@ fn extract_tarball(data: &[u8]) -> Result<Vec<FunctionFile>> {
     use std::io::Read;
 
     let mut files = Vec::new();
-    
+
     // Try to decompress as gzip first
     let decoder = GzDecoder::new(data);
     let mut archive = tar::Archive::new(decoder);
@@ -279,7 +285,7 @@ fn extract_tarball(data: &[u8]) -> Result<Vec<FunctionFile>> {
             for entry in entries {
                 let mut entry = entry?;
                 let path = entry.path()?.to_string_lossy().to_string();
-                
+
                 // Skip directories
                 if entry.header().entry_type().is_dir() {
                     continue;

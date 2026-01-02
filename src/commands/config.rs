@@ -48,7 +48,7 @@ fn add_project(
     service_key: Option<String>,
 ) -> Result<()> {
     let config_path = std::path::Path::new("./supamigrate.toml");
-    
+
     let mut config = if config_path.exists() {
         Config::load(Some(config_path))?
     } else {
@@ -113,7 +113,10 @@ fn show_config() -> Result<()> {
     println!("{:-<50}", "");
 
     println!("\nDefaults:");
-    println!("  Parallel transfers: {}", config.defaults.parallel_transfers);
+    println!(
+        "  Parallel transfers: {}",
+        config.defaults.parallel_transfers
+    );
     println!("  Compress backups: {}", config.defaults.compress_backups);
     println!("  Excluded schemas:");
     for schema in &config.defaults.excluded_schemas {

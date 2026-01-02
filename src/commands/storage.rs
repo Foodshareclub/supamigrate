@@ -26,9 +26,10 @@ async fn list_buckets(project_name: &str) -> Result<()> {
     let config = Config::load(None)?;
     let project = config.get_project(project_name)?;
 
-    let service_key = project.service_key.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("Project requires service_key for storage operations")
-    })?;
+    let service_key = project
+        .service_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Project requires service_key for storage operations"))?;
 
     let client = StorageClient::new(project.api_url(), service_key.clone());
     let buckets = client.list_buckets().await?;
@@ -41,34 +42,26 @@ async fn list_buckets(project_name: &str) -> Result<()> {
     } else {
         for bucket in buckets {
             let visibility = if bucket.public { "public" } else { "private" };
-            println!(
-                "  {} {} ({})",
-                style("•").cyan(),
-                bucket.name,
-                visibility
-            );
+            println!("  {} {} ({})", style("•").cyan(), bucket.name, visibility);
         }
     }
 
     Ok(())
 }
 
-async fn sync_storage(
-    from: &str,
-    to: &str,
-    bucket: Option<&str>,
-    parallel: usize,
-) -> Result<()> {
+async fn sync_storage(from: &str, to: &str, bucket: Option<&str>, parallel: usize) -> Result<()> {
     let config = Config::load(None)?;
     let source = config.get_project(from)?;
     let target = config.get_project(to)?;
 
-    let source_key = source.service_key.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("Source project requires service_key")
-    })?;
-    let target_key = target.service_key.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("Target project requires service_key")
-    })?;
+    let source_key = source
+        .service_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Source project requires service_key"))?;
+    let target_key = target
+        .service_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Target project requires service_key"))?;
 
     let source_client = StorageClient::new(source.api_url(), source_key.clone());
     let target_client = StorageClient::new(target.api_url(), target_key.clone());
@@ -105,9 +98,10 @@ async fn download_storage(
     let config = Config::load(None)?;
     let project = config.get_project(project_name)?;
 
-    let service_key = project.service_key.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("Project requires service_key")
-    })?;
+    let service_key = project
+        .service_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Project requires service_key"))?;
 
     let client = StorageClient::new(project.api_url(), service_key.clone());
 
@@ -120,8 +114,7 @@ async fn download_storage(
 
     std::fs::create_dir_all(output)?;
 
-    let transfer = StorageTransfer::new(client)
-        .parallel(config.defaults.parallel_transfers);
+    let transfer = StorageTransfer::new(client).parallel(config.defaults.parallel_transfers);
 
     let stats = if let Some(bucket_name) = bucket {
         let buckets = transfer.source.list_buckets().await?;
@@ -138,19 +131,16 @@ async fn download_storage(
     Ok(())
 }
 
-async fn upload_storage(
-    from: &std::path::Path,
-    to: &str,
-    bucket: &str,
-) -> Result<()> {
+async fn upload_storage(from: &std::path::Path, to: &str, bucket: &str) -> Result<()> {
     use tokio::fs;
 
     let config = Config::load(None)?;
     let project = config.get_project(to)?;
 
-    let service_key = project.service_key.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("Project requires service_key")
-    })?;
+    let service_key = project
+        .service_key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Project requires service_key"))?;
 
     let client = StorageClient::new(project.api_url(), service_key.clone());
 
@@ -173,7 +163,7 @@ async fn upload_storage(
         if entry.file_type().await?.is_file() {
             let file_name = entry.file_name().to_string_lossy().to_string();
             let data = fs::read(entry.path()).await?;
-            
+
             client.upload(bucket, &file_name, data.into()).await?;
             count += 1;
             println!("  {} {}", style("✓").green(), file_name);

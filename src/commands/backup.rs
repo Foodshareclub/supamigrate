@@ -19,10 +19,7 @@ pub async fn run(args: BackupArgs) -> Result<()> {
     let backup_dir = args.output.join(format!("{}_{}", args.project, timestamp));
     fs::create_dir_all(&backup_dir)?;
 
-    println!(
-        "\n{} Backup Plan",
-        style("📋").bold()
-    );
+    println!("\n{} Backup Plan", style("📋").bold());
     println!("  Project: {} ({})", args.project, project.project_ref);
     println!("  Output: {}", backup_dir.display());
     println!("  Schema only: {}", args.schema_only);
@@ -47,10 +44,8 @@ pub async fn run(args: BackupArgs) -> Result<()> {
     if args.compress {
         use std::io::BufWriter;
         let file = fs::File::create(&dump_file)?;
-        let mut encoder = flate2::write::GzEncoder::new(
-            BufWriter::new(file),
-            flate2::Compression::default(),
-        );
+        let mut encoder =
+            flate2::write::GzEncoder::new(BufWriter::new(file), flate2::Compression::default());
         encoder.write_all(dump.as_bytes())?;
         encoder.finish()?;
     } else {
@@ -68,10 +63,8 @@ pub async fn run(args: BackupArgs) -> Result<()> {
             anyhow::anyhow!("Project requires service_key for edge functions backup")
         })?;
 
-        let functions_client = FunctionsClient::new(
-            project.project_ref.clone(),
-            service_key.clone(),
-        );
+        let functions_client =
+            FunctionsClient::new(project.project_ref.clone(), service_key.clone());
 
         let functions = functions_client.backup_all().await?;
         let functions_dir = backup_dir.join("functions");
@@ -117,16 +110,16 @@ pub async fn run(args: BackupArgs) -> Result<()> {
     if args.include_storage {
         println!("\n{} Backing up storage...", style("📦").bold());
 
-        let service_key = project.service_key.as_ref().ok_or_else(|| {
-            anyhow::anyhow!("Project requires service_key for storage backup")
-        })?;
+        let service_key = project
+            .service_key
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Project requires service_key for storage backup"))?;
 
         let storage = StorageClient::new(project.api_url(), service_key.clone());
         let storage_dir = backup_dir.join("storage");
         fs::create_dir_all(&storage_dir)?;
 
-        let transfer = StorageTransfer::new(storage)
-            .parallel(config.defaults.parallel_transfers);
+        let transfer = StorageTransfer::new(storage).parallel(config.defaults.parallel_transfers);
 
         let stats = transfer.download_all(&storage_dir).await?;
         println!("{} Storage backup complete: {}", style("✓").green(), stats);
@@ -145,10 +138,7 @@ pub async fn run(args: BackupArgs) -> Result<()> {
     let metadata_file = backup_dir.join("metadata.json");
     fs::write(&metadata_file, serde_json::to_string_pretty(&metadata)?)?;
 
-    println!(
-        "\n{} Backup completed successfully!",
-        style("🎉").bold()
-    );
+    println!("\n{} Backup completed successfully!", style("🎉").bold());
     println!("  Location: {}", backup_dir.display());
 
     Ok(())
