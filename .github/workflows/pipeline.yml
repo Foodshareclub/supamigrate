@@ -51,7 +51,7 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -730,6 +730,7 @@ jobs:
           project_ref = "${PROJECT_REF}"
           db_password = "${{ secrets.PROD_DB_PASS }}"
           service_key = "${{ secrets.SUPABASE_SERVICE_ROLE }}"
+          db_port = 6543
 
           [defaults]
           compress_backups = true
