@@ -174,7 +174,7 @@ jobs:
           mv audit-report.json backup/security/
 
       - name: Upload audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: security-audit
           path: backup/
@@ -308,7 +308,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: |
@@ -477,7 +477,7 @@ jobs:
           mv sbom-${{ matrix.name }}.spdx.json backup/builds/${{ needs.metadata.outputs.version }}/ 2>/dev/null || true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-${{ matrix.name }}
           path: backup/
@@ -725,7 +725,7 @@ jobs:
         run: cargo tree --all-features > dependencies.txt
 
       - name: Upload compliance reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: compliance-reports
           path: |
