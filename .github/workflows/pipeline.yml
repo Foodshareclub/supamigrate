@@ -190,12 +190,6 @@ jobs:
           extra_args: --only-verified
         continue-on-error: true
 
-      - name: Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true  # Requires paid license for private repos
-
   # ---------------------------------------------------------------------------
   # SAST (Static Application Security Testing)
   # ---------------------------------------------------------------------------
