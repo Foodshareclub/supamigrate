@@ -737,6 +737,11 @@ jobs:
           ./mc alias set backup ${{ secrets.MINIO_ENDPOINT }} \
             ${{ secrets.MINIO_ACCESS_KEY }} \
             ${{ secrets.MINIO_SECRET_KEY }}
+          # Create bucket if not exists
+          ./mc mb --ignore-existing backup/${{ secrets.MINIO_BUCKET }} || true
+          # Upload with date folder
           DATE=$(date +%Y-%m-%d)
           ./mc cp --recursive backup/ backup/${{ secrets.MINIO_BUCKET }}/${DATE}/
+          # Verify upload
+          ./mc ls backup/${{ secrets.MINIO_BUCKET }}/${DATE}/
 
