@@ -730,16 +730,16 @@ jobs:
         env:
           RUST_LOG: info
 
-      - name: Upload to MinIO S3
+      - name: Upload to Cloudflare R2
         run: |
           curl -sO https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
-          ./mc alias set minio ${{ secrets.MINIO_ENDPOINT }} \
-            ${{ secrets.MINIO_ACCESS_KEY }} \
-            ${{ secrets.MINIO_SECRET_KEY }}
+          ./mc alias set r2 ${{ secrets.R2_ENDPOINT }} \
+            ${{ secrets.R2_ACCESS_KEY }} \
+            ${{ secrets.R2_SECRET_KEY }}
           # Upload with date folder
           DATE=$(date +%Y-%m-%d)
-          ./mc cp dumps/*.dump minio/${{ secrets.MINIO_BUCKET }}/${DATE}/
+          ./mc cp dumps/*.dump r2/${{ secrets.R2_BUCKET }}/${DATE}/
           # Verify upload
-          ./mc ls minio/${{ secrets.MINIO_BUCKET }}/${DATE}/
+          ./mc ls r2/${{ secrets.R2_BUCKET }}/${DATE}/
 
