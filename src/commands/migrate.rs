@@ -14,10 +14,7 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     let source = config.get_project(&args.from)?;
     let target = config.get_project(&args.to)?;
 
-    println!(
-        "\n{} Migration Plan",
-        style("📋").bold()
-    );
+    println!("\n{} Migration Plan", style("📋").bold());
     println!("  Source: {} ({})", args.from, source.project_ref);
     println!("  Target: {} ({})", args.to, target.project_ref);
     println!("  Schema only: {}", args.schema_only);
@@ -94,13 +91,14 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
             .parallel(config.defaults.parallel_transfers);
 
         let stats = transfer.sync_all().await?;
-        println!("{} Storage migration complete: {}", style("✓").green(), stats);
+        println!(
+            "{} Storage migration complete: {}",
+            style("✓").green(),
+            stats
+        );
     }
 
-    println!(
-        "\n{} Migration completed successfully!",
-        style("🎉").bold()
-    );
+    println!("\n{} Migration completed successfully!", style("🎉").bold());
 
     Ok(())
 }

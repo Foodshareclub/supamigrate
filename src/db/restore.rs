@@ -39,7 +39,11 @@ impl PgRestore {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        debug!("Running: psql {} --file {}", &self.db_url, input_path.display());
+        debug!(
+            "Running: psql {} --file {}",
+            &self.db_url,
+            input_path.display()
+        );
 
         let output = cmd.output()?;
 

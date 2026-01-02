@@ -39,20 +39,20 @@ pub async fn run(args: RestoreArgs) -> Result<()> {
         let content = fs::read_to_string(&metadata_path)?;
         serde_json::from_str(&content)?
     } else {
-        return Err(SupamigrateError::InvalidBackup(
-            "metadata.json not found".to_string(),
-        )
-        .into());
+        return Err(SupamigrateError::InvalidBackup("metadata.json not found".to_string()).into());
     };
 
-    println!(
-        "\n{} Restore Plan",
-        style("📋").bold()
-    );
+    println!("\n{} Restore Plan", style("📋").bold());
     println!("  From: {}", args.from.display());
     println!("  Target: {} ({})", args.to, target.project_ref);
-    println!("  Include storage: {}", args.include_storage && metadata.include_storage);
-    println!("  Include functions: {}", args.include_functions && metadata.include_functions);
+    println!(
+        "  Include storage: {}",
+        args.include_storage && metadata.include_storage
+    );
+    println!(
+        "  Include functions: {}",
+        args.include_functions && metadata.include_functions
+    );
 
     if !args.yes {
         print!("\n⚠️  This will overwrite data in the target project. Proceed? [y/N] ");
@@ -77,9 +77,10 @@ pub async fn run(args: RestoreArgs) -> Result<()> {
     };
 
     if !dump_file.exists() {
-        return Err(SupamigrateError::InvalidBackup(
-            format!("Database dump not found: {}", dump_file.display()),
-        )
+        return Err(SupamigrateError::InvalidBackup(format!(
+            "Database dump not found: {}",
+            dump_file.display()
+        ))
         .into());
     }
 
@@ -131,25 +132,27 @@ pub async fn run(args: RestoreArgs) -> Result<()> {
             anyhow::anyhow!("Target project requires service_key for edge functions restore")
         })?;
 
-        let functions_client = FunctionsClient::new(
-            target.project_ref.clone(),
-            service_key.clone(),
-        );
+        let functions_client =
+            FunctionsClient::new(target.project_ref.clone(), service_key.clone());
 
         let functions_dir = args.from.join("functions");
 
         if functions_dir.exists() {
             let stats = restore_functions(&functions_client, &functions_dir).await?;
-            println!("{} Edge functions restore complete: {}", style("✓").green(), stats);
+            println!(
+                "{} Edge functions restore complete: {}",
+                style("✓").green(),
+                stats
+            );
         } else {
-            println!("{} No functions backup found, skipping", style("⚠️").yellow());
+            println!(
+                "{} No functions backup found, skipping",
+                style("⚠️").yellow()
+            );
         }
     }
 
-    println!(
-        "\n{} Restore completed successfully!",
-        style("🎉").bold()
-    );
+    println!("\n{} Restore completed successfully!", style("🎉").bold());
 
     Ok(())
 }
@@ -253,7 +256,7 @@ async fn restore_storage(
     while let Some(entry) = entries.next_entry().await? {
         if entry.file_type().await?.is_dir() {
             let bucket_name = entry.file_name().to_string_lossy().to_string();
-            
+
             // Create bucket (assume public for now, could store in metadata)
             client.create_bucket(&bucket_name, false).await?;
             stats.buckets += 1;
@@ -261,13 +264,13 @@ async fn restore_storage(
             // Upload files
             let bucket_dir = entry.path();
             let mut files = fs::read_dir(&bucket_dir).await?;
-            
+
             while let Some(file_entry) = files.next_entry().await? {
                 if file_entry.file_type().await?.is_file() {
                     let file_name = file_entry.file_name().to_string_lossy().to_string();
                     let data = fs::read(file_entry.path()).await?;
                     let data_len = data.len();
-                    
+
                     client.upload(&bucket_name, &file_name, data.into()).await?;
                     stats.objects += 1;
                     stats.bytes += data_len;

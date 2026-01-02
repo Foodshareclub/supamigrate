@@ -55,7 +55,11 @@ impl StorageTransfer {
     }
 
     /// Sync a specific bucket
-    pub async fn sync_bucket(&self, bucket_name: &str, target: &StorageClient) -> Result<SyncStats> {
+    pub async fn sync_bucket(
+        &self,
+        bucket_name: &str,
+        target: &StorageClient,
+    ) -> Result<SyncStats> {
         info!("Syncing bucket: {}", bucket_name);
 
         // Get bucket info and create on target
@@ -63,7 +67,9 @@ impl StorageTransfer {
         let bucket = buckets
             .iter()
             .find(|b| b.name == bucket_name)
-            .ok_or_else(|| crate::error::SupamigrateError::BucketNotFound(bucket_name.to_string()))?;
+            .ok_or_else(|| {
+                crate::error::SupamigrateError::BucketNotFound(bucket_name.to_string())
+            })?;
 
         target.create_bucket(&bucket.name, bucket.public).await?;
 
