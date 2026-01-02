@@ -1042,6 +1042,45 @@ jobs:
           pattern: backup-*
           merge-multiple: true
 
+      - name: Check R2 capacity
+        run: |
+          curl -sO https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          ./mc alias set r2 ${{ secrets.R2_ENDPOINT }} \
+            ${{ secrets.R2_ACCESS_KEY }} \
+            ${{ secrets.R2_SECRET_KEY }}
+
+          # Get current bucket usage
+          BUCKET_SIZE=$(./mc du r2/${{ secrets.R2_BUCKET }}/ --json 2>/dev/null | jq -r '.size // 0' || echo 0)
+          BUCKET_SIZE_MB=$((BUCKET_SIZE / 1024 / 1024))
+
+          # Get today's backup size
+          BACKUP_SIZE=$(du -sb dumps/ | cut -f1)
+          BACKUP_SIZE_MB=$((BACKUP_SIZE / 1024 / 1024))
+
+          # Calculate projected usage
+          PROJECTED_MB=$((BUCKET_SIZE_MB + BACKUP_SIZE_MB))
+          LIMIT_MB=10240  # 10GB
+
+          echo "📊 R2 Capacity Check:"
+          echo "   Current bucket: ${BUCKET_SIZE_MB} MB"
+          echo "   Today's backup: ${BACKUP_SIZE_MB} MB"
+          echo "   Projected:      ${PROJECTED_MB} MB / ${LIMIT_MB} MB"
+
+          if [ "$PROJECTED_MB" -gt "$LIMIT_MB" ]; then
+            echo "❌ ERROR: Upload would exceed 10GB limit!"
+            echo "   Consider running cleanup or increasing quota."
+            exit 1
+          fi
+
+          # Warning at 80% capacity
+          THRESHOLD=$((LIMIT_MB * 80 / 100))
+          if [ "$PROJECTED_MB" -gt "$THRESHOLD" ]; then
+            echo "⚠️ WARNING: Approaching 80% capacity (${PROJECTED_MB}MB / ${LIMIT_MB}MB)"
+          else
+            echo "✅ Capacity OK"
+          fi
+
       - name: Upload to Cloudflare R2
         run: |
           echo "📤 Uploading all backups to R2..."
@@ -1061,4 +1100,8 @@ jobs:
 
           echo "✅ Upload complete"
           ./mc ls r2/${{ secrets.R2_BUCKET }}/${DATE}/
+
+          echo ""
+          echo "📊 Final bucket usage:"
+          ./mc du r2/${{ secrets.R2_BUCKET }}/ -h
 
