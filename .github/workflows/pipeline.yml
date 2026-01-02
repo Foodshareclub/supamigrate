@@ -133,10 +133,13 @@ jobs:
 
       - name: Clippy (all targets)
         run: cargo clippy --all-targets --all-features -- -D warnings -D clippy::all -D clippy::pedantic -A clippy::module_name_repetitions
+        env:
+          RUSTFLAGS: '-D warnings'  # Override global RUSTFLAGS (crt-static breaks proc-macros)
 
       - name: Check documentation
         run: cargo doc --no-deps --all-features --document-private-items
         env:
+          RUSTFLAGS: '-D warnings'
           RUSTDOCFLAGS: '-D warnings'
 
   # ---------------------------------------------------------------------------
