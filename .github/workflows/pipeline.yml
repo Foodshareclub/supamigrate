@@ -662,7 +662,7 @@ jobs:
 
       - name: Slack notification
         if: vars.SLACK_ENABLED == 'true'
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v2
         with:
           payload: |
             {
