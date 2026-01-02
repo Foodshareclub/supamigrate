@@ -1,0 +1,27 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+[extend]
+useDefault = true
+
+# Exclude false positives
+[[rules]]
+id = "allow-readme-examples"
+description = "Allow example keys in README"
+path = '''README\.md'''
+allowlist = true
+
+[[rules]]
+id = "allow-sql-dumps"
+description = "Allow SQL dump files (contain example data)"
+path = '''\.sql$'''
+allowlist = true
+
+# Exclude test files and examples
+[allowlist]
+paths = [
+    '''README\.md''',
+    '''\.sql$''',
+    '''test.*''',
+    '''examples?/''',
+]
