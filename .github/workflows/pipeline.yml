@@ -702,3 +702,55 @@ jobs:
             vulnerabilities.json
             dependencies.txt
           retention-days: 90
+
+  # ---------------------------------------------------------------------------
+  # Daily Backup (Supabase -> MinIO S3)
+  # ---------------------------------------------------------------------------
+  backup:
+    name: Daily Backup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build supamigrate
+        run: cargo build --release
+
+      - name: Create config
+        run: |
+          cat > supamigrate.toml << 'EOF'
+          [projects.production]
+          project_ref = "${{ secrets.SUPABASE_PROJECT_REF }}"
+          db_password = "${{ secrets.SUPABASE_DB_PASSWORD }}"
+          service_key = "${{ secrets.SUPABASE_SERVICE_KEY }}"
+
+          [defaults]
+          compress_backups = true
+          EOF
+
+      - name: Run backup
+        run: |
+          mkdir -p backup
+          ./target/release/supamigrate backup production --output backup/
+        env:
+          RUST_LOG: info
+
+      - name: Upload to MinIO S3
+        run: |
+          curl -sO https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          ./mc alias set backup ${{ secrets.MINIO_ENDPOINT }} \
+            ${{ secrets.MINIO_ACCESS_KEY }} \
+            ${{ secrets.MINIO_SECRET_KEY }}
+          ./mc mb --ignore-existing backup/supabase-backups
+          DATE=$(date +%Y-%m-%d)
+          ./mc cp --recursive backup/ backup/supabase-backups/${DATE}/
+
+      - name: Cleanup
+        if: always()
+        run: rm -f supamigrate.toml
