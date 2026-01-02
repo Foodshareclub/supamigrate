@@ -1,3 +1,11 @@
+// Allow common pedantic lints that are too noisy for this codebase
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::struct_excessive_bools)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::single_match_else)]
+
 use anyhow::Result;
 use clap::Parser;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
