@@ -279,4 +279,3 @@ Built for the [Supabase](https://supabase.com) community.
 - [Discussions](https://github.com/Foodshareclub/supamigrate/discussions)
 
 Inspired by [Supa-Migrate](https://github.com/mansueli/Supa-Migrate) by [@mansueli](https://github.com/mansueli).
-# Test bypass
