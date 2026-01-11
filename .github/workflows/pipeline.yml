@@ -739,7 +739,7 @@ jobs:
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" pg_dump \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
             -p 5432 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
+            -U "${{ secrets.SUPABASE_DB_USER }}.${{ secrets.SUPABASE_PROJECT_ID }}" \
             -d postgres \
             --no-owner --no-acl \
             -Fc -f dumps/database_${TIMESTAMP}.dump
@@ -776,7 +776,7 @@ jobs:
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
             -p 5432 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
+            -U "${{ secrets.SUPABASE_DB_USER }}.${{ secrets.SUPABASE_PROJECT_ID }}" \
             -d postgres \
             -c "
               SELECT '-- RLS Policies Export' AS header;
@@ -838,7 +838,7 @@ jobs:
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
             -p 5432 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
+            -U "${{ secrets.SUPABASE_DB_USER }}.${{ secrets.SUPABASE_PROJECT_ID }}" \
             -d postgres \
             -c "
               SELECT '-- Triggers Export' AS header;
@@ -869,7 +869,7 @@ jobs:
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
             -p 5432 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
+            -U "${{ secrets.SUPABASE_DB_USER }}.${{ secrets.SUPABASE_PROJECT_ID }}" \
             -d postgres \
             -c "
               SELECT '-- Functions Export' AS header;
@@ -1034,7 +1034,7 @@ jobs:
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
             -p 5432 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
+            -U "${{ secrets.SUPABASE_DB_USER }}.${{ secrets.SUPABASE_PROJECT_ID }}" \
             -d postgres \
             -c "
               SELECT '-- Cron Jobs Export' AS header;
