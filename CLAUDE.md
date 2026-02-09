@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Supamigrate is a Rust CLI tool for migrating Supabase projects — database schema, data, storage, and edge functions between environments.
 
+**Self-hosted Supabase:**
+- Studio (dashboard): https://studio.foodshare.club
+- API: https://api.foodshare.club
+
 ## Build & Development Commands
 
 ```bash

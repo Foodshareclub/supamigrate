@@ -193,8 +193,8 @@ impl StorageClient {
         Ok(all_files)
     }
 
-    /// Download an object
-    pub async fn download(&self, bucket: &str, path: &str) -> Result<Bytes> {
+    /// Download an object, returning bytes and content type
+    pub async fn download(&self, bucket: &str, path: &str) -> Result<(Bytes, String)> {
         let url = format!("{}/object/{}/{}", self.storage_url(), bucket, path);
         debug!("Downloading: {}/{}", bucket, path);
 
@@ -215,21 +215,28 @@ impl StorageClient {
             )));
         }
 
+        let content_type = response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| mime_from_path(path))
+            .to_string();
+
         let bytes = response.bytes().await?;
-        Ok(bytes)
+        Ok((bytes, content_type))
     }
 
-    /// Upload an object
-    pub async fn upload(&self, bucket: &str, path: &str, data: Bytes) -> Result<()> {
+    /// Upload an object with a specific content type
+    pub async fn upload(&self, bucket: &str, path: &str, data: Bytes, content_type: &str) -> Result<()> {
         let url = format!("{}/object/{}/{}", self.storage_url(), bucket, path);
-        debug!("Uploading: {}/{}", bucket, path);
+        debug!("Uploading: {}/{} ({})", bucket, path, content_type);
 
         let response = self
             .client
             .post(&url)
             .header("Authorization", self.auth_header())
             .header("apikey", &self.service_key)
-            .header("Content-Type", "application/octet-stream")
+            .header("Content-Type", content_type)
             .header("x-upsert", "true")
             .body(data)
             .send()
@@ -245,5 +252,28 @@ impl StorageClient {
         }
 
         Ok(())
+    }
+}
+
+/// Guess MIME type from file extension
+pub(crate) fn mime_from_path(path: &str) -> &str {
+    match path.rsplit('.').next().map(|s| s.to_lowercase()).as_deref() {
+        Some("jpg" | "jpeg") => "image/jpeg",
+        Some("png") => "image/png",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        Some("svg") => "image/svg+xml",
+        Some("mp4") => "video/mp4",
+        Some("webm") => "video/webm",
+        Some("pdf") => "application/pdf",
+        Some("json") => "application/json",
+        Some("txt") => "text/plain",
+        Some("html" | "htm") => "text/html",
+        Some("css") => "text/css",
+        Some("js") => "application/javascript",
+        Some("heic") => "image/heic",
+        Some("heif") => "image/heif",
+        Some("avif") => "image/avif",
+        _ => "application/octet-stream",
     }
 }

@@ -110,9 +110,9 @@ impl StorageTransfer {
                 let pb = pb.clone();
 
                 async move {
-                    let data = source.download(&bucket, &name).await?;
+                    let (data, content_type) = source.download(&bucket, &name).await?;
                     let size = data.len();
-                    target.upload(&bucket, &name, data).await?;
+                    target.upload(&bucket, &name, data, &content_type).await?;
                     pb.inc(1);
                     Ok(size)
                 }
@@ -188,7 +188,7 @@ impl StorageTransfer {
                 let pb = pb.clone();
 
                 async move {
-                    let data = source.download(&bucket_name, &name).await?;
+                    let (data, _content_type) = source.download(&bucket_name, &name).await?;
                     let size = data.len();
 
                     let file_path = bucket_dir.join(&name);

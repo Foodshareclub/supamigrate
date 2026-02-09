@@ -164,7 +164,8 @@ async fn upload_storage(from: &std::path::Path, to: &str, bucket: &str) -> Resul
             let file_name = entry.file_name().to_string_lossy().to_string();
             let data = fs::read(entry.path()).await?;
 
-            client.upload(bucket, &file_name, data.into()).await?;
+            let content_type = crate::storage::client::mime_from_path(&file_name);
+            client.upload(bucket, &file_name, data.into(), content_type).await?;
             count += 1;
             println!("  {} {}", style("✓").green(), file_name);
         }
