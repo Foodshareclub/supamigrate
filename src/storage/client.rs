@@ -111,23 +111,20 @@ impl StorageClient {
         Ok(())
     }
 
-    /// List objects in a bucket
-    pub async fn list_objects(
+    /// List objects in a bucket (single page)
+    async fn list_objects_page(
         &self,
         bucket: &str,
-        prefix: Option<&str>,
+        prefix: &str,
+        offset: u64,
     ) -> Result<Vec<StorageObject>> {
         let url = format!("{}/object/list/{}", self.storage_url(), bucket);
-        debug!("Listing objects in bucket: {}", bucket);
 
-        let mut body = serde_json::json!({
+        let body = serde_json::json!({
+            "prefix": prefix,
             "limit": 1000,
-            "offset": 0,
+            "offset": offset,
         });
-
-        if let Some(p) = prefix {
-            body["prefix"] = serde_json::json!(p);
-        }
 
         let response = self
             .client
@@ -149,6 +146,51 @@ impl StorageClient {
 
         let objects: Vec<StorageObject> = response.json().await?;
         Ok(objects)
+    }
+
+    /// List all objects in a bucket recursively with pagination
+    pub async fn list_objects(
+        &self,
+        bucket: &str,
+        prefix: Option<&str>,
+    ) -> Result<Vec<StorageObject>> {
+        let prefix_str = prefix.unwrap_or("");
+        debug!("Listing objects in bucket: {} prefix: {:?}", bucket, prefix_str);
+
+        let mut all_files: Vec<StorageObject> = Vec::new();
+        let mut folders_to_scan: Vec<String> = vec![prefix_str.to_string()];
+
+        while let Some(folder) = folders_to_scan.pop() {
+            let mut offset = 0u64;
+            loop {
+                let objects = self.list_objects_page(bucket, &folder, offset).await?;
+                let count = objects.len();
+
+                for obj in objects {
+                    if obj.id.is_some() {
+                        // It's a file — build full path
+                        all_files.push(StorageObject {
+                            name: format!("{}{}", folder, obj.name),
+                            id: obj.id,
+                            metadata: obj.metadata,
+                            created_at: obj.created_at,
+                            updated_at: obj.updated_at,
+                        });
+                    } else {
+                        // It's a folder — queue for recursive scan
+                        folders_to_scan.push(format!("{}{}/", folder, obj.name));
+                    }
+                }
+
+                if count < 1000 {
+                    break;
+                }
+                offset += 1000;
+            }
+        }
+
+        debug!("Found {} files in bucket {}", all_files.len(), bucket);
+        Ok(all_files)
     }
 
     /// Download an object
@@ -188,6 +230,7 @@ impl StorageClient {
             .header("Authorization", self.auth_header())
             .header("apikey", &self.service_key)
             .header("Content-Type", "application/octet-stream")
+            .header("x-upsert", "true")
             .body(data)
             .send()
             .await?;
