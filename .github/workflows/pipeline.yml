@@ -719,32 +719,36 @@ jobs:
       timestamp: ${{ steps.dump.outputs.timestamp }}
 
     steps:
-      - name: Install PostgreSQL 17 client
-        run: |
-          # Add PostgreSQL APT repository for latest version
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client-17
-          pg_dump --version
-
-      - name: Dump PostgreSQL database
+      - name: Dump PostgreSQL database via SSH
         id: dump
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          username: organic
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            mkdir -p /tmp/supabase-backup
+            
+            echo "📦 Dumping database..."
+            docker exec supabase-db pg_dump \
+              -U postgres \
+              -d postgres \
+              --no-owner --no-acl \
+              -Fc > /tmp/supabase-backup/database_${TIMESTAMP}.dump
+            
+            echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+            echo "✅ Database dump complete"
+            ls -lh /tmp/supabase-backup/
+
+      - name: Download backup from VPS
         run: |
           mkdir -p dumps
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
-
-          echo "📦 Dumping full database..."
-          PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" pg_dump \
-            -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 543222 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
-            -d postgres \
-            --no-owner --no-acl \
-            -Fc -f dumps/database_${TIMESTAMP}.dump
-
-          echo "✅ Database dump complete"
+          echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
+            organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/*.dump dumps/
+          rm /tmp/ssh_key
           ls -lh dumps/
 
       - name: Upload artifact
