@@ -764,26 +764,18 @@ jobs:
     needs: backup-database
 
     steps:
-      - name: Install PostgreSQL 17 client
-        run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client-17
-
-      - name: Extract RLS policies
-        run: |
-          mkdir -p dumps
-          TIMESTAMP="${{ needs.backup-database.outputs.timestamp }}"
-
-          echo "📦 Extracting RLS policies..."
-          PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
-            -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 54322 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
-            -d postgres \
-            -c "
-              SELECT '-- RLS Policies Export' AS header;
+      - name: Extract RLS policies via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          username: organic
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            TIMESTAMP="${{ needs.backup-database.outputs.timestamp }}"
+            mkdir -p /tmp/supabase-backup
+            
+            echo "📦 Extracting RLS policies..."
+            docker exec supabase-db psql -U postgres -d postgres -t -A -c "
               SELECT format(
                 'CREATE POLICY %I ON %I.%I FOR %s TO %s %s %s;',
                 pol.polname,
@@ -807,10 +799,19 @@ jobs:
               JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
               ORDER BY n.nspname, c.relname, pol.polname;
-            " -t -A > dumps/rls_policies_${TIMESTAMP}.sql
+            " > /tmp/supabase-backup/rls_policies_${TIMESTAMP}.sql
+            
+            POLICY_COUNT=$(grep -c "CREATE POLICY" /tmp/supabase-backup/rls_policies_${TIMESTAMP}.sql 2>/dev/null || echo "0")
+            echo "✅ Extracted $POLICY_COUNT RLS policies"
 
-          POLICY_COUNT=$(grep -c "CREATE POLICY" dumps/rls_policies_${TIMESTAMP}.sql 2>/dev/null || echo "0")
-          echo "✅ Extracted $POLICY_COUNT RLS policies"
+      - name: Download backup from VPS
+        run: |
+          mkdir -p dumps
+          echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
+            organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/*.sql dumps/
+          rm /tmp/ssh_key
           ls -lh dumps/
 
       - name: Upload artifact
@@ -826,26 +827,18 @@ jobs:
     needs: [backup-rls-policies, backup-database]
 
     steps:
-      - name: Install PostgreSQL 17 client
-        run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client-17
-
-      - name: Extract triggers and functions
-        run: |
-          mkdir -p dumps
-          TIMESTAMP="${{ needs.backup-database.outputs.timestamp }}"
-
-          echo "📦 Extracting triggers..."
-          PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
-            -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 54322 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
-            -d postgres \
-            -c "
-              SELECT '-- Triggers Export' AS header;
+      - name: Extract triggers and functions via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          username: organic
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            TIMESTAMP="${{ needs.backup-database.outputs.timestamp }}"
+            mkdir -p /tmp/supabase-backup
+            
+            echo "📦 Extracting triggers..."
+            docker exec supabase-db psql -U postgres -d postgres -t -A -c "
               SELECT format(
                 'CREATE TRIGGER %I %s %s ON %I.%I FOR EACH %s EXECUTE FUNCTION %s;',
                 t.tgname,
@@ -867,27 +860,30 @@ jobs:
               WHERE NOT t.tgisinternal
                 AND n.nspname NOT IN ('pg_catalog', 'information_schema')
               ORDER BY n.nspname, c.relname, t.tgname;
-            " -t -A > dumps/triggers_${TIMESTAMP}.sql
-
-          echo "📦 Extracting user-defined functions..."
-          PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
-            -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 54322 \
-            -U "${{ secrets.SUPABASE_DB_USER }}" \
-            -d postgres \
-            -c "
-              SELECT '-- Functions Export' AS header;
+            " > /tmp/supabase-backup/triggers_${TIMESTAMP}.sql
+            
+            echo "📦 Extracting user-defined functions..."
+            docker exec supabase-db psql -U postgres -d postgres -t -A -c "
               SELECT pg_get_functiondef(p.oid) || ';'
               FROM pg_proc p
               JOIN pg_namespace n ON n.oid = p.pronamespace
               WHERE n.nspname NOT IN ('pg_catalog', 'information_schema', 'extensions')
                 AND p.prokind = 'f'
               ORDER BY n.nspname, p.proname;
-            " -t -A > dumps/functions_${TIMESTAMP}.sql
+            " > /tmp/supabase-backup/functions_${TIMESTAMP}.sql
+            
+            TRIGGER_COUNT=$(grep -c "CREATE TRIGGER" /tmp/supabase-backup/triggers_${TIMESTAMP}.sql 2>/dev/null || echo "0")
+            FUNC_COUNT=$(grep -c "CREATE.*FUNCTION" /tmp/supabase-backup/functions_${TIMESTAMP}.sql 2>/dev/null || echo "0")
+            echo "✅ Extracted $TRIGGER_COUNT triggers, $FUNC_COUNT functions"
 
-          TRIGGER_COUNT=$(grep -c "CREATE TRIGGER" dumps/triggers_${TIMESTAMP}.sql 2>/dev/null || echo "0")
-          FUNC_COUNT=$(grep -c "CREATE.*FUNCTION" dumps/functions_${TIMESTAMP}.sql 2>/dev/null || echo "0")
-          echo "✅ Extracted $TRIGGER_COUNT triggers, $FUNC_COUNT functions"
+      - name: Download backup from VPS
+        run: |
+          mkdir -p dumps
+          echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
+            "organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/{triggers,functions}_*.sql" dumps/
+          rm /tmp/ssh_key
           ls -lh dumps/
 
       - name: Upload artifact
