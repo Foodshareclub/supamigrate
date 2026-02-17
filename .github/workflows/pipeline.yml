@@ -738,7 +738,7 @@ jobs:
           echo "📦 Dumping full database..."
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" pg_dump \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 5432 \
+            -p 543222 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
             --no-owner --no-acl \
@@ -775,7 +775,7 @@ jobs:
           echo "📦 Extracting RLS policies..."
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 5432 \
+            -p 54322 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
             -c "
@@ -837,7 +837,7 @@ jobs:
           echo "📦 Extracting triggers..."
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 5432 \
+            -p 54322 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
             -c "
@@ -868,7 +868,7 @@ jobs:
           echo "📦 Extracting user-defined functions..."
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 5432 \
+            -p 54322 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
             -c "
@@ -1033,7 +1033,7 @@ jobs:
 
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
             -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
-            -p 5432 \
+            -p 54322 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
             -c "
