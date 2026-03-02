@@ -166,7 +166,7 @@ jobs:
           mv audit-report.json backup/security/
 
       - name: Upload audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-audit
           path: backup/
@@ -278,7 +278,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
@@ -446,7 +446,7 @@ jobs:
           mv sbom-${{ matrix.name }}.spdx.json backup/builds/${{ needs.metadata.outputs.version }}/ 2>/dev/null || true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-${{ matrix.name }}
           path: backup/
@@ -693,7 +693,7 @@ jobs:
         run: cargo tree --all-features > dependencies.txt
 
       - name: Upload compliance reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compliance-reports
           path: |
@@ -752,7 +752,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-database
           path: dumps/*.dump
@@ -815,7 +815,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-rls
           path: dumps/*.sql
@@ -887,7 +887,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-triggers
           path: dumps/*.sql
@@ -935,7 +935,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-edge-functions
           path: dumps/*.tar.gz
@@ -973,7 +973,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-auth
           path: dumps/*.json
@@ -1005,7 +1005,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-secrets
           path: dumps/*.json
@@ -1053,7 +1053,7 @@ jobs:
           ls -lh dumps/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-cron
           path: dumps/*.sql
