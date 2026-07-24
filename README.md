@@ -233,6 +233,61 @@ jobs:
 | `SUPABASE_SERVICE_KEY` | Service role key |
 | `SUPABASE_ACCESS_TOKEN` | Personal access token (for edge functions) |
 
+### Self-Hosted Supabase Backup Setup
+
+To use the included GitHub Actions backup pipeline with a self-hosted Supabase instance, go to your repository's actions secrets:
+`https://github.com/<your-username>/<your-repo>/settings/secrets/actions`
+
+#### Secrets to Configure
+
+**Database Connection**
+```text
+SUPABASE_POOLER_HOST = <your-db-hostname>
+SUPABASE_DB_USER = postgres
+SUPABASE_DB_PASS = <your-database-password>
+```
+
+**Backup Pipeline Toggle**
+To enable the backup pipeline to run on this repository, you MUST add the following **Repository Variable** (Settings → Secrets and variables → Actions → Variables):
+```text
+ENABLE_BACKUPS = true
+```
+
+**Optional (can be removed, no longer used)**
+```text
+SUPABASE_PROJECT_ID = (not needed for self-hosted)
+```
+
+#### What Changed
+The workflow connects to your self-hosted Supabase instance instead of a cloud instance.
+**Before:** Connected to cloud instance `<your-cloud-project-id>`
+**After:** Connects to self-hosted instance at `<your-db-hostname>`
+
+#### Backup Schedule
+- **Frequency:** Daily at 2 AM UTC
+- **Storage:** Cloudflare R2 bucket
+- **Retention:** 30 days (automatic cleanup)
+- **What's backed up:**
+  - Full database dump
+  - RLS policies
+  - Triggers & functions
+  - Edge functions
+  - Auth configuration
+  - Secrets (names only)
+  - Cron jobs
+
+#### Next Steps
+1. Go to GitHub repository secrets
+2. Update the secrets listed above
+3. Optionally trigger a manual workflow run to test:
+   - Go to Actions → Pipeline → Run workflow
+4. Check the backup succeeded in R2
+
+#### Notes
+- The workflow uses standard PostgreSQL connection format (`-U postgres`) instead of Supabase Cloud format (`-U postgres.project_id`).
+- Make sure `<your-db-hostname>` resolves to your VPS or use the direct IP/hostname.
+- Port 5432 must be accessible from GitHub Actions runners.
+
 ## Configuration
 
 ### Config File Locations

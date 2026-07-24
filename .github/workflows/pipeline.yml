@@ -714,7 +714,7 @@ jobs:
   backup-database:
     name: "💾 Backup › Database"
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: vars.ENABLE_BACKUPS == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     outputs:
       timestamp: ${{ steps.dump.outputs.timestamp }}
 
@@ -761,6 +761,7 @@ jobs:
   backup-rls-policies:
     name: "🔐 Backup › RLS Policies"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
     steps:
@@ -824,6 +825,7 @@ jobs:
   backup-triggers:
     name: "⚡ Backup › Triggers & Functions"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-rls-policies, backup-database]
 
     steps:
@@ -896,6 +898,7 @@ jobs:
   backup-edge-functions:
     name: "🌐 Backup › Edge Functions"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-triggers, backup-database]
 
     steps:
@@ -946,6 +949,7 @@ jobs:
   backup-auth-config:
     name: "🔑 Backup › Auth Config"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
     steps:
@@ -982,6 +986,7 @@ jobs:
   backup-secrets:
     name: "🔒 Backup › Edge Function Secrets"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-edge-functions, backup-database]
 
     steps:
@@ -1014,6 +1019,7 @@ jobs:
   backup-cron-jobs:
     name: "⏰ Backup › Cron Jobs"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
     steps:
@@ -1062,6 +1068,7 @@ jobs:
   backup-upload:
     name: "☁️ Backup › Upload to R2"
     runs-on: ubuntu-latest
+    if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-database, backup-rls-policies, backup-triggers, backup-edge-functions, backup-auth-config, backup-secrets, backup-cron-jobs]
 
     steps:
