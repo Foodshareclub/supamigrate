@@ -240,11 +240,14 @@ To use the included GitHub Actions backup pipeline with a self-hosted Supabase i
 
 #### Secrets to Configure
 
-**Database Connection**
+**Database Connection (GitHub Secrets ONLY)**
+> [!CAUTION]
+> Manual backups or migrations via SSH on the VPS are strictly forbidden. All operations against the production database must go through the GitHub Actions CI/CD pipeline. These variables MUST be injected via GitHub Secrets in full scale to avoid exposure in local configuration files.
+
 ```text
-SUPABASE_POOLER_HOST = <your-db-hostname>
+SUPABASE_POOLER_HOST = api.foodshare.club
 SUPABASE_DB_USER = postgres
-SUPABASE_DB_PASS = <your-database-password>
+SUPABASE_DB_PASS = <your-database-password-via-secret>
 ```
 
 **Backup Pipeline Toggle**
@@ -344,7 +347,7 @@ Use GitHub's private vulnerability reporting:
 
 1. **Never commit** `supamigrate.toml` — it contains credentials
 2. **Verify downloads** using SHA256SUMS.txt
-3. **Use GitHub Secrets** in CI/CD pipelines
+3. **Use GitHub Secrets** in CI/CD pipelines in full scale. No manual VPS `.env` modifications or local `.toml` executions against production environments are allowed. The pipeline is the single source of truth.
 4. **Rotate credentials** regularly
 
 ## Contributing

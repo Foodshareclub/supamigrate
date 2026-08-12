@@ -10,6 +10,8 @@ Supamigrate is a Rust CLI tool for migrating Supabase projects — database sche
 - Studio (dashboard): https://studio.foodshare.club
 - API: https://api.foodshare.club
 
+> **Deployment & Usage Rules**: Manual migrations or backups via SSH on the VPS are strictly forbidden. All operations against `api.foodshare.club` must go through the GitHub Actions CI/CD pipeline with full-scale secrets injected securely.
+
 ## Build & Development Commands
 
 ```bash
