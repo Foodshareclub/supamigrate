@@ -65,7 +65,7 @@ jobs:
   # ---------------------------------------------------------------------------
   metadata:
     name: Metadata
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       version: ${{ steps.version.outputs.version }}
       is_release: ${{ steps.check.outputs.is_release }}
@@ -116,7 +116,7 @@ jobs:
   # ---------------------------------------------------------------------------
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -144,7 +144,7 @@ jobs:
   # ---------------------------------------------------------------------------
   security:
     name: Security
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       security-events: write
@@ -177,7 +177,7 @@ jobs:
   # ---------------------------------------------------------------------------
   secrets-scan:
     name: Secrets Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -201,7 +201,7 @@ jobs:
   # ---------------------------------------------------------------------------
   sast:
     name: SAST
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       security-events: write
@@ -252,7 +252,7 @@ jobs:
   coverage:
     name: Coverage
     needs: [lint]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -291,7 +291,7 @@ jobs:
   # ---------------------------------------------------------------------------
   fuzz:
     name: Fuzz
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -460,7 +460,7 @@ jobs:
     name: Release
     needs: [metadata, build]
     if: needs.metadata.outputs.is_release == 'true' && !inputs.dry_run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
       id-token: write
@@ -588,7 +588,7 @@ jobs:
       needs.metadata.outputs.is_release == 'true' &&
       needs.metadata.outputs.is_prerelease == 'false' &&
       !inputs.dry_run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: crates-io
 
     steps:
@@ -617,7 +617,7 @@ jobs:
     name: Notify
     needs: [metadata, release, publish]
     if: always() && needs.metadata.outputs.is_release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Summary
@@ -665,7 +665,7 @@ jobs:
   # ---------------------------------------------------------------------------
   compliance:
     name: Compliance
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       security-events: write
@@ -713,7 +713,7 @@ jobs:
 
   backup-database:
     name: "💾 Backup › Database"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     outputs:
       timestamp: ${{ steps.dump.outputs.timestamp }}
@@ -723,7 +723,7 @@ jobs:
         id: dump
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          host: ${{ secrets.VPS_HOST }}
           username: organic
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
@@ -747,7 +747,7 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
           scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
-            organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/*.dump dumps/
+            organic@${{ secrets.VPS_HOST }}:/tmp/supabase-backup/*.dump dumps/
           rm /tmp/ssh_key
           ls -lh dumps/
 
@@ -760,7 +760,7 @@ jobs:
 
   backup-rls-policies:
     name: "🔐 Backup › RLS Policies"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
@@ -768,7 +768,7 @@ jobs:
       - name: Extract RLS policies via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          host: ${{ secrets.VPS_HOST }}
           username: organic
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
@@ -811,7 +811,7 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
           scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
-            organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/*.sql dumps/
+            organic@${{ secrets.VPS_HOST }}:/tmp/supabase-backup/*.sql dumps/
           rm /tmp/ssh_key
           ls -lh dumps/
 
@@ -824,7 +824,7 @@ jobs:
 
   backup-triggers:
     name: "⚡ Backup › Triggers & Functions"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-rls-policies, backup-database]
 
@@ -832,7 +832,7 @@ jobs:
       - name: Extract triggers and functions via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SUPABASE_POOLER_HOST }}
+          host: ${{ secrets.VPS_HOST }}
           username: organic
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
@@ -884,7 +884,7 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY }}" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
           scp -i /tmp/ssh_key -o StrictHostKeyChecking=no \
-            "organic@${{ secrets.SUPABASE_POOLER_HOST }}:/tmp/supabase-backup/{triggers,functions}_*.sql" dumps/
+            "organic@${{ secrets.VPS_HOST }}:/tmp/supabase-backup/{triggers,functions}_*.sql" dumps/
           rm /tmp/ssh_key
           ls -lh dumps/
 
@@ -897,7 +897,7 @@ jobs:
 
   backup-edge-functions:
     name: "🌐 Backup › Edge Functions"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-triggers, backup-database]
 
@@ -948,7 +948,7 @@ jobs:
 
   backup-auth-config:
     name: "🔑 Backup › Auth Config"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
@@ -985,7 +985,7 @@ jobs:
 
   backup-secrets:
     name: "🔒 Backup › Edge Function Secrets"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-edge-functions, backup-database]
 
@@ -1018,7 +1018,7 @@ jobs:
 
   backup-cron-jobs:
     name: "⏰ Backup › Cron Jobs"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: backup-database
 
@@ -1038,7 +1038,7 @@ jobs:
           echo "⏰ Backing up cron jobs..."
 
           PGPASSWORD="${{ secrets.SUPABASE_DB_PASS }}" psql \
-            -h "${{ secrets.SUPABASE_POOLER_HOST }}" \
+            -h "${{ secrets.VPS_HOST }}" \
             -p 54322 \
             -U "${{ secrets.SUPABASE_DB_USER }}" \
             -d postgres \
@@ -1067,7 +1067,7 @@ jobs:
 
   backup-upload:
     name: "☁️ Backup › Upload to R2"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: vars.ENABLE_BACKUPS == 'true'
     needs: [backup-database, backup-rls-policies, backup-triggers, backup-edge-functions, backup-auth-config, backup-secrets, backup-cron-jobs]
 
