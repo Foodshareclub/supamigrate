@@ -245,7 +245,7 @@ To use the included GitHub Actions backup pipeline with a self-hosted Supabase i
 > Manual backups or migrations via SSH on the VPS are strictly forbidden. All operations against the production database must go through the GitHub Actions CI/CD pipeline. These variables MUST be injected via GitHub Secrets in full scale to avoid exposure in local configuration files.
 
 ```text
-SUPABASE_POOLER_HOST = api.foodshare.club
+SUPABASE_POOLER_HOST = <your-db-hostname>
 SUPABASE_DB_USER = postgres
 SUPABASE_DB_PASS = <your-database-password-via-secret>
 ```

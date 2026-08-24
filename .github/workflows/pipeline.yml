@@ -191,10 +191,9 @@ jobs:
         continue-on-error: true
 
       - name: Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            ghcr.io/gitleaks/gitleaks:v8.28.0 detect --source . --redact --verbose
 
   # ---------------------------------------------------------------------------
   # SAST (Static Application Security Testing)
@@ -209,9 +208,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Semgrep scan
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: p/rust
+        run: |
+          docker run --rm -v "$PWD:/src" semgrep/semgrep:latest \
+            semgrep scan --config p/rust --error
         continue-on-error: true
 
 # ===========================================================================

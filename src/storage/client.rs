@@ -266,7 +266,8 @@ impl StorageClient {
 
 /// Guess MIME type from file extension
 pub(crate) fn mime_from_path(path: &str) -> &str {
-    match path.rsplit('.').next().map(|s| s.to_lowercase()).as_deref() {
+    let ext = path.rsplit('.').next().map(str::to_lowercase);
+    match ext.as_deref() {
         Some("jpg" | "jpeg") => "image/jpeg",
         Some("png") => "image/png",
         Some("gif") => "image/gif",
