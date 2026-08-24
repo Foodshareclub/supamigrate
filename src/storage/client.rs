@@ -155,7 +155,10 @@ impl StorageClient {
         prefix: Option<&str>,
     ) -> Result<Vec<StorageObject>> {
         let prefix_str = prefix.unwrap_or("");
-        debug!("Listing objects in bucket: {} prefix: {:?}", bucket, prefix_str);
+        debug!(
+            "Listing objects in bucket: {} prefix: {:?}",
+            bucket, prefix_str
+        );
 
         let mut all_files: Vec<StorageObject> = Vec::new();
         let mut folders_to_scan: Vec<String> = vec![prefix_str.to_string()];
@@ -227,7 +230,13 @@ impl StorageClient {
     }
 
     /// Upload an object with a specific content type
-    pub async fn upload(&self, bucket: &str, path: &str, data: Bytes, content_type: &str) -> Result<()> {
+    pub async fn upload(
+        &self,
+        bucket: &str,
+        path: &str,
+        data: Bytes,
+        content_type: &str,
+    ) -> Result<()> {
         let url = format!("{}/object/{}/{}", self.storage_url(), bucket, path);
         debug!("Uploading: {}/{} ({})", bucket, path, content_type);
 

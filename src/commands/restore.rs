@@ -375,7 +375,9 @@ async fn restore_storage(
                     let data_len = data.len();
 
                     let content_type = crate::storage::client::mime_from_path(&file_name);
-                    client.upload(&bucket_name, &file_name, data.into(), content_type).await?;
+                    client
+                        .upload(&bucket_name, &file_name, data.into(), content_type)
+                        .await?;
                     stats.objects += 1;
                     stats.bytes += data_len;
                 }
