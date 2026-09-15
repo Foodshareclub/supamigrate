@@ -170,7 +170,7 @@ jobs:
         with:
           name: security-audit
           path: backup/
-          retention-days: 90
+          retention-days: 1
 
   # ---------------------------------------------------------------------------
   # Secret Scanning
@@ -283,7 +283,7 @@ jobs:
           path: |
             lcov.info
             coverage.json
-          retention-days: 90
+          retention-days: 1
 
   # ---------------------------------------------------------------------------
   # Fuzzing
@@ -449,7 +449,7 @@ jobs:
         with:
           name: build-${{ matrix.name }}
           path: backup/
-          retention-days: 90
+          retention-days: 1
           if-no-files-found: error
 
 # ===========================================================================
@@ -700,7 +700,7 @@ jobs:
             licenses.txt
             vulnerabilities.json
             dependencies.txt
-          retention-days: 90
+          retention-days: 1
 
   # ===========================================================================
   # 💾 BACKUP PIPELINE
