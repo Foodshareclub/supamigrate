@@ -1,0 +1,21 @@
+name: Feature request
+about: Suggest an idea for this project
+title: "[enhancement] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing or painful, and what does it cost?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [Web, iOS, Android, Backend, Other]
