@@ -155,10 +155,47 @@ jobs:
 
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked
-        continue-on-error: true
 
       - name: Audit vulnerabilities
-        run: cargo audit --json > audit-report.json 2>&1 || echo '{"vulnerabilities":[]}' > audit-report.json
+        # Fail closed: any non-ignored vulnerability — or a broken
+        # cargo-audit / advisory-DB fetch — must fail this job. Accepted
+        # no-fix advisories come from the committed policy file
+        # audit.toml, never from a shell fallback. (This step used to
+        # substitute a fabricated empty report on failure, which is how
+        # RUSTSEC findings went unseen.)
+        #
+        # cargo-audit 0.23.x has no config-file support (verified against
+        # the installed toolchain), so the policy's RUSTSEC ids are
+        # derived into --ignore flags. A missing/unreadable audit.toml
+        # fails this step before the audit runs.
+        run: |
+          # The policy file is mandatory: without it the audit would
+          # silently degrade to no-policy mode.
+          if ! grep -qE 'RUSTSEC-[0-9]{4}-[0-9]{4}' audit.toml; then
+            echo "::error::audit.toml is missing or contains no RUSTSEC ids — refusing to run the audit without the committed policy"
+            exit 1
+          fi
+          # Build the --ignore flags as an array. Unquoted expansion is
+          # NOT word-split by every shell (zsh does not split it —
+          # verified on this estate), so a single string would reach
+          # cargo audit as one broken argument.
+          grep -oE 'RUSTSEC-[0-9]{4}-[0-9]{4}' audit.toml > audit-ignores.txt
+          ignores=()
+          while IFS= read -r id; do
+            ignores+=("--ignore" "$id")
+          done < audit-ignores.txt
+          set +e
+          cargo audit --json "${ignores[@]}" > audit-report.json 2> audit-stderr.txt
+          audit_status=$?
+          set -e
+          if [ "$audit_status" -ne 0 ]; then
+            echo "cargo audit FAILED (exit $audit_status) — report:"
+            cat audit-report.json
+            echo "--- stderr ---"
+            cat audit-stderr.txt
+            exit 1
+          fi
+          cat audit-report.json
 
       - name: Organize audit in backup directory
         run: |
@@ -686,7 +723,33 @@ jobs:
           cargo license > licenses.txt
 
       - name: Generate vulnerability report
-        run: cargo audit --json > vulnerabilities.json || true
+        # Same fail-closed policy as the Security job: ignore list derived
+        # from audit.toml (cargo-audit 0.23.x reads no config file),
+        # exceptions never via `|| true`.
+        run: |
+          # The policy file is mandatory: without it the audit would
+          # silently degrade to no-policy mode.
+          if ! grep -qE 'RUSTSEC-[0-9]{4}-[0-9]{4}' audit.toml; then
+            echo "::error::audit.toml is missing or contains no RUSTSEC ids — refusing to run the audit without the committed policy"
+            exit 1
+          fi
+          # Same array-based flag construction as the Security job.
+          grep -oE 'RUSTSEC-[0-9]{4}-[0-9]{4}' audit.toml > audit-ignores.txt
+          ignores=()
+          while IFS= read -r id; do
+            ignores+=("--ignore" "$id")
+          done < audit-ignores.txt
+          set +e
+          cargo audit --json "${ignores[@]}" > vulnerabilities.json 2> audit-stderr.txt
+          audit_status=$?
+          set -e
+          if [ "$audit_status" -ne 0 ]; then
+            echo "cargo audit FAILED (exit $audit_status) — report:"
+            cat vulnerabilities.json
+            echo "--- stderr ---"
+            cat audit-stderr.txt
+            exit 1
+          fi
 
       - name: Generate dependency report
         run: cargo tree --all-features > dependencies.txt
