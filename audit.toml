@@ -1,0 +1,35 @@
+# cargo-audit severity policy for supamigrate
+#
+# The committed, reviewed list of advisories this project knowingly ships.
+# The CI Security + Compliance jobs derive their `--ignore` flags from the
+# quoted "RUSTSEC-YYYY-NNNN" tokens below, then run a fail-closed
+# `cargo audit`: any non-ignored vulnerability fails the job.
+#
+# NOTE: cargo-audit 0.23.x has no config-file support — verified against
+# the installed toolchain (neither this file nor
+# [package.metadata.cargo-audit] is read). This file is therefore the
+# policy of record AND the flag source for the workflow steps; only the
+# quoted RUSTSEC tokens are machine-read. Keep advisory IDs out of the
+# comments below, or they would be picked up as ignores.
+#
+# Rules for entries:
+#   * Only advisories with NO fixed release may be listed. When a patched
+#     release ships, the same change that bumps the lockfile must remove
+#     the entry, or the audit goes red.
+#   * Each entry: RUSTSEC id + reason, inline.
+
+[advisories]
+ignore = [
+  # number_prefix 0.4.0 — crate abandoned (last release 2019), no fixed
+  # release exists. Transitive dep via indicatif -> console; used only to
+  # render human-readable byte counts / durations in CLI output. No call
+  # path in supamigrate exercises the parsing defect this advisory
+  # describes. Revisit if console or indicatif drops the dependency.
+  "RUSTSEC-2025-0119",
+
+  # pin-utils 0.1.0 — crate unmaintained, no fixed release exists.
+  # Transitive dep of the futures/tokio pin-projection plumbing; the
+  # advisory flags maintenance status, not a reachable defect in this
+  # CLI. Revisit if the futures chain replaces it.
+  "RUSTSEC-2026-0441",
+]
