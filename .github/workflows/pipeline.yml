@@ -127,6 +127,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -278,6 +279,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: test-${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Run tests
         run: cargo test --all-features --target ${{ matrix.target }} -- --nocapture
@@ -299,6 +301,8 @@ jobs:
       - uses: taiki-e/install-action@cargo-llvm-cov
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Generate coverage
         run: |
@@ -417,6 +421,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Build release
         run: cargo build --release --locked --target ${{ matrix.target }}
